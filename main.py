@@ -26,10 +26,10 @@ def get_embeddings(face_img):
     return embedding[0]
 
 # loag image
-# def load_image(image_path):
-#     image = cv.imread(image_path)
-#     image = cv.cvtColor(image, cv.COLOR_BGR2RGB)
-#     return image
+def load_image(image_path):
+    image = cv.imread(image_path)
+    image = cv.cvtColor(image, cv.COLOR_BGR2RGB)
+    return image
 
 # detect face and extract faces
 def extract_faces(img):
@@ -67,7 +67,7 @@ def predict(image):
 def attendance(df, path):
     predictions, boxes = predict(path)
     for prediction in predictions:
-        if prediction in df["name"].values:
+        if prediction in df["Name"].values:
             now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             df.loc[df['Name'] == prediction, 'Attendance'] = 'present'
             df.loc[df['Name'] == prediction, 'Time'] = now
@@ -98,19 +98,8 @@ with tab1:
     st.markdown("<h3 style='text-align: center; padding-bottom: 0px;'>Upload Image</h3>", unsafe_allow_html=True)
     # Add the uploaded image to session state
     uploaded_file = st.file_uploader("Upload Image", type=["jpg", "png", "jpeg"], key="upload_image")
-    if uploaded_file is not None:
-        img = cv.imdecode(np.frombuffer(uploaded_file.read(), np.uint8), cv.IMREAD_COLOR)
-        st.session_state["image"] = img
+    
         
-        df, predictions, boxes = attendance(df, img)
-        for (box, prediction) in zip(boxes, predictions):
-            x, y, w, h = box
-            cv.rectangle(img, (x, y), (x+w, y+h), (0, 0, 255), 2)
-            cv.putText(img, prediction, (x, y-10), cv.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 255), 2)
-
-        # Convert image back to PIL for Streamlit display
-        image_with_boxes = Image.fromarray(cv.cvtColor(img, cv.COLOR_BGR2RGB))
-
        
        
 # with tab2: 
@@ -131,6 +120,20 @@ with tab1:
 
 
 st.markdown("<h2 style='text-align: center; padding-bottom: 0px;'>Result</h2>", unsafe_allow_html=True)
+if uploaded_file is not None:
+    img = cv.imdecode(np.frombuffer(uploaded_file.read(), np.uint8), cv.IMREAD_COLOR)
+    # 
+    
+    df, predictions, boxes = attendance(df, img)
+    for (box, prediction) in zip(boxes, predictions):
+        x, y, w, h = box
+        cv.rectangle(img, (x, y), (x+w, y+h), (0, 0, 255), 2)
+        cv.putText(img, prediction, (x, y-10), cv.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 255), 2)
+
+            # Convert image back to PIL for Streamlit display
+    image_with_boxes = Image.fromarray(cv.cvtColor(img, cv.COLOR_BGR2RGB))
+    st.image(image_with_boxes)
+
     
 with st.sidebar:
     st.markdown("<h2 style='text-align:center; padding-bottom: 20px;'>Attendance</h2>", unsafe_allow_html=True)
