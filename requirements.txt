@@ -1,0 +1,7 @@
+streamlit==1.35.0
+pandas==2.2.2
+numpy==1.26.4
+opencv-python==4.9.0.80
+Pillow==10.3.0
+keras-facenet==0.3.2
+mtcnn==0.1.1
