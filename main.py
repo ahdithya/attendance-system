@@ -16,7 +16,7 @@ detector = MTCNN()
 
 model = pickle.load(open("./packages/model.pkl", 'rb'))
 encoder = pickle.load(open("./packages/encoder.pkl", 'rb'))
-threshold = 0.65
+threshold = 0.2
 
 
 # get embeddings 
@@ -77,9 +77,14 @@ def attendance(df, path):
 
 # Initialize dataframe to store attendance
 df = pd.DataFrame({
-        'Name': ["Aditya", "Elon Musk", "Fitriah"],
-        'Attendance': [""] * 3,
-        'Time': [""] * 3
+        'Name': ["Ahmad Haidar Zaidan Ammar", "Bagus Purboyo", "Faiqah Gusmarianty", 
+                 "Falisa Alfiani Heriansyah", "Fhika Fezya Amesha", "Heri Arista",
+                 "Jovan Prasetyo Wibisono", "Lutfiah Aulia", "Muhammad Ridho Adriano",
+                 "Nafisah Fathimatus Zahra", "Naufal Fadhli Adyatma", "Rafi Amrullah Al-Baihaqi Gunawan",
+                 "Rohid Ade Pratama", "Rohmah Mufidah", "Salsabila Azzahra",
+                 "Zahrah Salsabila Dhia Ichsandi"],
+        'Attendance': [""] * 16,
+        'Time': [""] * 16
     })
 
 
@@ -98,41 +103,47 @@ with tab1:
     st.markdown("<h3 style='text-align: center; padding-bottom: 0px;'>Upload Image</h3>", unsafe_allow_html=True)
     # Add the uploaded image to session state
     uploaded_file = st.file_uploader("Upload Image", type=["jpg", "png", "jpeg"], key="upload_image")
-    
+
+    st.markdown("<h2 style='text-align: center; padding-bottom: 0px;'>Result</h2>", unsafe_allow_html=True)
+    if uploaded_file is not None:
+        img = cv.imdecode(np.frombuffer(uploaded_file.read(), np.uint8), cv.IMREAD_COLOR)
+        # 
         
-       
-       
-# with tab2: 
-#     st.markdown("<h3 style='text-align: center; padding-bottom: 0px;'>Take A Picture</h3>", unsafe_allow_html=True) 
+        df, predictions, boxes = attendance(df, img)
+        for (box, prediction) in zip(boxes, predictions):
+            x, y, w, h = box
+            cv.rectangle(img, (x, y), (x+w, y+h), (0, 255, 0), 2)
+            cv.putText(img, prediction, (x, y-10), cv.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 3)
+
+        # Convert image back to PIL for Streamlit display
+        image_with_boxes = Image.fromarray(cv.cvtColor(img, cv.COLOR_BGR2RGB))
+        st.image(image_with_boxes)
+        
+with tab2:
+    
+    st.markdown("<h3 style='text-align: center; padding-bottom: 0px;'>Take A Picture</h3>", unsafe_allow_html=True) 
             
-#     picture = st.camera_input("Take a picture")
+    picture = st.camera_input("Take a picture")
 
-#     # Add the captured image to session state
-#     if picture is not None:
-#         bytes_data = picture.getvalue()
-#         img = cv.imdecode(np.frombuffer(bytes_data, np.uint8), cv.IMREAD_COLOR)
-#         st.session_state["image"] = img
+    # Add the captured image to session state
+    if picture is not None:
+        bytes_data = picture.getvalue()
+        img = cv.imdecode(np.frombuffer(bytes_data, np.uint8), cv.IMREAD_COLOR)
+        st.session_state["image"] = img
+        
+        df, predictions, boxes = attendance(df, img)
+        for (box, prediction) in zip(boxes, predictions):
+            x, y, w, h = box
+            cv.rectangle(img, (x, y), (x+w, y+h), (0, 0, 255), 1)
+            cv.putText(img, prediction, (x, y-10), cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+
+        # Convert image back to PIL for Streamlit display
+        image_with_boxes = Image.fromarray(cv.cvtColor(img, cv.COLOR_BGR2RGB))
+        st.image(image_with_boxes)
     
 
-# if st.button("Mark Attendance"):
-#     df = attendance(df, st.session_state["image"])    
-    
-
-
-st.markdown("<h2 style='text-align: center; padding-bottom: 0px;'>Result</h2>", unsafe_allow_html=True)
-if uploaded_file is not None:
-    img = cv.imdecode(np.frombuffer(uploaded_file.read(), np.uint8), cv.IMREAD_COLOR)
-    # 
-    
-    df, predictions, boxes = attendance(df, img)
-    for (box, prediction) in zip(boxes, predictions):
-        x, y, w, h = box
-        cv.rectangle(img, (x, y), (x+w, y+h), (0, 0, 255), 2)
-        cv.putText(img, prediction, (x, y-10), cv.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 255), 2)
-
-            # Convert image back to PIL for Streamlit display
-    image_with_boxes = Image.fromarray(cv.cvtColor(img, cv.COLOR_BGR2RGB))
-    st.image(image_with_boxes)
+if st.button("Mark Attendance"):
+    df = attendance(df, st.session_state["image"])    
 
     
 with st.sidebar:
